@@ -1,0 +1,15 @@
+import cv2, numpy as np
+import matplotlib.pyplot as plt
+img = cv2.cvtColor(cv2.imread("img1.webp"), cv2.COLOR_BGR2RGB)
+gray = np.float32(cv2.cvtColor(img, cv2.COLOR_RGB2GRAY))
+mean, eig = cv2.PCACompute(gray, mean=None, maxComponents=50)
+recon = cv2.PCABackProject(cv2.PCAProject(gray, mean, eig), mean, eig)
+
+for i, (im, t) in enumerate([(gray, "Original"), (recon, "PCA")]):
+    plt.subplot(1,2,i+1)
+    plt.imshow(im, cmap='gray')
+    plt.title(t)
+    plt.axis("off")
+
+plt.tight_layout()
+plt.show()
