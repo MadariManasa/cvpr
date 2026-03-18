@@ -1,0 +1,27 @@
+import cv2
+import numpy as np
+import matplotlib.pyplot as plt 
+img = cv2.imread("cube.jpg")
+img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB) 
+gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY) 
+edges = cv2.Canny(gray, 50, 150)
+lines = cv2.HoughLines(edges, 1, np.pi/180, 150)
+img_lines = img_rgb.copy()
+if lines is not None:
+  for rho, theta in lines[:, 0]:
+    a = np.cos(theta)
+    b = np.sin(theta) x0 = a * rho
+    y0 = b * rho
+    x1 = int(x0 + 1000*(-b)) 
+    y1 = int(y0 + 1000*(a))
+    x2 = int(x0 - 1000*(-b)) 
+    y2 = int(y0 - 1000*(a))
+    cv2.line(img_lines, (x1, y1), (x2, y2), (255, 0, 0), 2) 
+plt.figure(figsize=(12,5))
+plt.subplot(1,2,1) 
+plt.imshow(img_rgb) 
+plt.axis("off") 
+plt.subplot(1,2,2)
+plt.imshow(img_lines) 
+plt.axis("off")
+plt.show()
