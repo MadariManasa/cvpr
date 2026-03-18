@@ -1,0 +1,22 @@
+import cv2
+import matplotlib.pyplot as plt
+
+# Read image
+img = cv2.imread("image.jpg", 0)
+
+# Extract highest bit plane (MSB)
+bit_plane = (img >> 7) & 1
+bit_plane = bit_plane * 255
+
+# Display
+plt.subplot(1,2,1)
+plt.imshow(img, cmap='gray')
+plt.title("Original")
+plt.axis("off")
+
+plt.subplot(1,2,2)
+plt.imshow(bit_plane, cmap='gray')
+plt.title("Bit Plane (MSB)")
+plt.axis("off")
+
+plt.show()
