@@ -1,103 +1,19 @@
 import cv2
 import numpy as np
-import matplotlib.pyplot as plt
-from collections import Counter
-import heapq
 
-img = cv2.imread("image.jpg",0)
+img = cv2.imread('image.png', 0)
 
-def rle_encode(img):
-    pixels = img.flatten()
-    rle=[]
-    count=1
-    prev=pixels[0]
-    for p in pixels[1:]:
-        if p==prev:
-            count+=1
-        else:
-            rle.append((prev,count))
-            prev=p
-            count=1
-    rle.append((prev,count))
-    return rle
+bit_planes = []
 
-def rle_decode(rle,shape):
-    arr=[]
-    for val,cnt in rle:
-        arr.extend([val]*cnt)
-    return np.array(arr).reshape(shape)
+for i in range(8):
+    plane = (img >> i) & 1
+    plane = plane * 255
+    bit_planes.append(plane)
 
-rle = rle_encode(img)
-rle_img = rle_decode(rle,img.shape)
+cv2.imshow("Original", img)
 
-class Node:
-    def __init__(self,freq,sym=None,left=None,right=None):
-        self.freq=freq
-        self.sym=sym
-        self.left=left
-        self.right=right
-    def __lt__(self,other):
-        return self.freq<other.freq
+for i in range(8):
+    cv2.imshow(f"Bit Plane {i}", bit_planes[i])
 
-def build_tree(img):
-    pixels=img.flatten()
-    freq=Counter(pixels)
-    heap=[Node(freq[v],v) for v in freq]
-    heapq.heapify(heap)
-    while len(heap)>1:
-        n1=heapq.heappop(heap)
-        n2=heapq.heappop(heap)
-        heapq.heappush(heap,Node(n1.freq+n2.freq,None,n1,n2))
-    return heap[0]
-
-def generate_codes(node,prefix="",codes={}):
-    if node.sym is not None:
-        codes[node.sym]=prefix
-        return
-    generate_codes(node.left,prefix+"0",codes)
-    generate_codes(node.right,prefix+"1",codes)
-    return codes
-
-tree=build_tree(img)
-codes=generate_codes(tree)
-
-encoded=''.join([codes[p] for p in img.flatten()])
-decoded_pixels=[]
-inv={v:k for k,v in codes.items()}
-temp=""
-
-for bit in encoded:
-    temp+=bit
-    if temp in inv:
-        decoded_pixels.append(inv[temp])
-        temp=""
-
-huffman_img=np.array(decoded_pixels).reshape(img.shape)
-
-bit_plane=(img>>7)&1
-bit_plane=bit_plane*255
-
-plt.figure(figsize=(10,4))
-
-plt.subplot(1,4,1)
-plt.imshow(img,cmap='gray')
-plt.title("Original")
-plt.axis("off")
-
-plt.subplot(1,4,2)
-plt.imshow(rle_img,cmap='gray')
-plt.title("Run Length")
-plt.axis("off")
-
-plt.subplot(1,4,3)
-plt.imshow(huffman_img,cmap='gray')
-plt.title("Huffman")
-plt.axis("off")
-
-plt.subplot(1,4,4)
-plt.imshow(bit_plane,cmap='gray')
-plt.title("Higher Bit Plane")
-plt.axis("off")
-
-plt.tight_layout()
-plt.show()
+cv2.waitKey(0)
+cv2.destroyAllWindows()
